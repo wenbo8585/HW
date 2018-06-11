@@ -1,7 +1,7 @@
 import sys, os, math
 import numpy as np
 import pandas as pd
-from GradientDescent import GradientDescent
+from Q3_GradientDescent import GradientDescent
 from collections import OrderedDict
 from datetime import timedelta
 
@@ -86,7 +86,7 @@ train_y = np.array(train_data.loc[:, '10h__PM2.5'])
 
 # record the order of columns
 colname_X = (train_data.loc[:, train_data.columns != '10h__PM2.5'])
-#print(colname_x)
+# print(colname_X)
 
 # gradient descent
 gd = GradientDescent()
@@ -95,10 +95,10 @@ gd.train_by_pseudo_inverse(train_X, train_y, alpha=0.5, validate_data=(valid_X, 
 
 # train-->
 #
-#init_wt = gd.wt
-#init_b = gd.b
+# init_wt = gd.wt
+# init_b = gd.b
 #
-#gd.train(train_X, train_y, epoch=10, rate=0.00001, batch=100, alpha=0.0000001,
+# gd.train(train_X, train_y, epoch=10, rate=0.00001, batch=100, alpha=0.0000001,
 #        init_wt=np.array(init_wt), init_b=init_b, validate_data = (valid_X, valid_y))
 #
 # train <--
@@ -110,7 +110,7 @@ test = pd.read_csv('./data/test_X.csv', names = col_names, header=None)
 # record ordfer of test.ID
 id_test = test.ID
 
-#map(lambda x:'{:02d}h'.format(x),range(1,10)):
+# map(lambda x:'{:02d}h'.format(x),range(1,10)):
 # replace NR to 0
 for col in [lambda x:'{:02d}h'.format(x) for x in range(1,10)]:
     test.loc[(test.Item=='RAINFALL')&(test[col]=='NR'),col] = 0
