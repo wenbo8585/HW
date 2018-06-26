@@ -1,9 +1,11 @@
 import sys, os, math
 import numpy as np
 import pandas as pd
-from Q3_GradientDescent import GradientDescent
+import time
+from LSGD import LSGD
 from collections import OrderedDict
 from datetime import timedelta
+
 
 path = "./data/train.csv"
 # preproc data
@@ -78,65 +80,17 @@ else:
     train_data = gen_regression_form(df_not_12m)
     train_data.to_csv(path_train_data, index=None)
 
+# 162 = 18 * 9
+# 5181 = 24 * 20 * 11 - 9 * 11
+# 471 = 24* 20 * 1 - 9
+
 valid_X = np.array(valid_data.loc[:, valid_data.columns != '10h__PM2.5'])
 valid_y = np.array(valid_data.loc[:, '10h__PM2.5'])
 
 train_X = np.array(train_data.loc[:, train_data.columns != '10h__PM2.5'])
 train_y = np.array(train_data.loc[:, '10h__PM2.5'])
+print(valid_X.shape)
+print(train_X.shape)
 
-# record the order of columns
-colname_X = (train_data.loc[:, train_data.columns != '10h__PM2.5'])
-# print(colname_X)
-
-# gradient descent
-gd = GradientDescent()
-
-gd.train_by_pseudo_inverse(train_X, train_y, alpha=0.5, validate_data=(valid_X, valid_y))
-
-# train-->
-#
-# init_wt = gd.wt
-# init_b = gd.b
-#
-# gd.train(train_X, train_y, epoch=10, rate=0.00001, batch=100, alpha=0.0000001,
-#        init_wt=np.array(init_wt), init_b=init_b, validate_data = (valid_X, valid_y))
-#
-# train <--
-
-### testing
-col_names = ['ID','Item']+[lambda x:'{:02d}h'.format(x) for x in range(1,10)]
-test = pd.read_csv('./data/test_X.csv', names = col_names, header=None)
-
-# record ordfer of test.ID
-id_test = test.ID
-
-# map(lambda x:'{:02d}h'.format(x),range(1,10)):
-# replace NR to 0
-for col in [lambda x:'{:02d}h'.format(x) for x in range(1,10)]:
-    test.loc[(test.Item=='RAINFALL')&(test[col]=='NR'),col] = 0
-
-# ['ID','Item','Hour','Value'] form
-test =  test.pivot_table( index=['ID','Item'], aggfunc='sum')
-test = test.stack()
-test = test.reset_index()
-test.columns = ['ID','Item','Hour','Value']
-
-# combine 'Hour' and 'Item' to 'Col'
-test['Col'] = test.Hour + "__" + test.Item
-test = test[['ID','Col','Value']]
-
-# pivot 'Col' to columns
-test = test.pivot_table(values='Value',index='ID',columns='Col', aggfunc='sum').reset_index()
-test.name = ''
-
-# re-order
-test['ID_Num'] = test.ID.str.replace('id_','').astype('int')
-test = test.sort_values(by='ID_Num')
-test = test.reset_index(drop=True)
-
-# predict
-X_test = np.array(test[colname_X],dtype='float64')
-test['Predict'] = gd.predict(X_test)
-
-# output
-test[['ID','Predict']].to_csv('linear_regression.csv',header=None,index=None)
+svm = LSGD()
+loss_h = svm.train(train_X, train_y, learning_rate=1e-4, reg=1, num_iters=10)

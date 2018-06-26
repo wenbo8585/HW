@@ -42,22 +42,21 @@ class GradientDescent(object):
         self.__X = X
         self.__y = y
 
-        print(X)
-
         num_data = X.shape[0]
         dim_wt = X.shape[1]
 
         argu_X = np.hstack((np.ones(num_data).reshape(num_data, 1), X))
 
         # calculate pseudo-inverse
+
         A_plus = np.dot(np.linalg.inv(np.dot(argu_X.T, argu_X) + alpha * np.eye(dim_wt + 1)), argu_X.T)
 
         wt_b = np.dot(A_plus, y)
         self.__b = wt_b[0]
         self.__wt = wt_b[1:]
-        print(self.__wt)
+
         if validate_data:
-            print("Pseudo-Inverse: err={:.6f} validate = {:.6f}".format(self.err_insample(),
+            print("Pseudo-Inverse: err={:.6f} validate err= {:.6f}".format(self.err_insample(),
                                                                         self.err(validate_data[0], validate_data[1])))
         else:
             print("Pseudo-Inverse: err = {:.6f}".format(self.err_insample()))
