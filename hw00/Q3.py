@@ -1,10 +1,10 @@
 import sys, os, math
 import numpy as np
 import pandas as pd
-import time
-from LSGD import LSGD
 from collections import OrderedDict
 from datetime import timedelta
+from sklearn import linear_model
+from sklearn.metrics import mean_squared_error, r2_score
 
 
 path = "./data/train.csv"
@@ -26,6 +26,7 @@ df = pd.melt(df, id_vars=['Date', 'Item'], value_vars=[str(x) for x in range(24)
 # http://pandas.pydata.org/pandas-docs/stable/generated/pandas.to_datetime.html#pandas.to_datetime
 df["Datetime"] = pd.to_datetime(df.Date + " " + df.Hour + ":00:00")
 df = df.loc[:, ['Datetime', 'Item', 'Value']]
+
 
 # replace NR to 0
 df.loc[df.Value == "NR", "Value"] = 0
@@ -92,5 +93,37 @@ train_y = np.array(train_data.loc[:, '10h__PM2.5'])
 print(valid_X.shape)
 print(train_X.shape)
 
-svm = LSGD()
-loss_h = svm.train(train_X, train_y, learning_rate=1e-4, reg=1, num_iters=10)
+
+###########################################
+# Linear Regression                       #
+###########################################
+reg = linear_model.LinearRegression()
+reg.fit(train_X,train_y)
+
+# Make predictions using the testing set
+valid_y_pred = reg.predict(valid_X)
+
+# The coefficients
+#print('Coefficients: \n', reg.coef_)
+# The mean squared error
+print("Linear Regression Mean squared error: %.2f"
+      % mean_squared_error(valid_y, valid_y_pred))
+# Explained variance score: 1 is perfect prediction
+print('Linear Regression Variance score: %.2f' % r2_score(valid_y, valid_y_pred))
+
+###########################################
+# Ridge Regression                        #
+###########################################
+regr = linear_model.Ridge(alpha=0.4)
+regr.fit(train_X, train_y)
+
+valid_y_pred_r = regr.predict(valid_X)
+
+# The coefficients
+# print('Coefficients: \n', regr.coef_)
+# The mean squared error
+print("Ridge Regression Mean squared error: %.2f"
+          % mean_squared_error(valid_y, valid_y_pred))
+# Explained variance score: 1 is perfect prediction
+print('Ridge Regression Variance score: %.2f' % r2_score(valid_y, valid_y_pred))
+
