@@ -1,5 +1,4 @@
- 
-# Q3问题
+ # Q3
 
 使用线性回归或者其它方法预测PM2.5的数值。用前九个小时的测量值，预测第十个小时的PM2.5的值。
 
@@ -32,7 +31,7 @@ remove the column "site"
 df = df.loc[:, ['Date', 'Item'] + [str(x) for x in range(24)]]
 ```
 
-数据按时间排序,像这样:。
+数据按时间排序,像这样:
 ```text
               Date        Item Hour Value
 0         2014/1/1    AMB_TEMP    0    14
@@ -93,6 +92,7 @@ df_not_12m = df.loc[df.index.month != 12, :]
 
 ## Linear Models
 
+[sklearn](http://scikit-learn.org/stable/modules/linear_model.html#ridge-regression)
 
 ### Linear Regression
 

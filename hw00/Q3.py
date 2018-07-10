@@ -6,7 +6,6 @@ from datetime import timedelta
 from sklearn import linear_model
 from sklearn.metrics import mean_squared_error, r2_score
 
-
 path = "./data/train.csv"
 # preproc data
 # format
@@ -127,3 +126,40 @@ print("Ridge Regression Mean squared error: %.2f"
 # Explained variance score: 1 is perfect prediction
 print('Ridge Regression Variance score: %.2f' % r2_score(valid_y, valid_y_pred))
 
+# record the order of columns
+colname_X = (train_data.loc[:,train_data.columns!='10h__PM2.5']).columns
+
+### testing
+col_names = ['ID','Item']+ ['{:02d}h'.format(x) for x in range(1,10)]
+test = pd.read_csv('./data/test_X.csv', names = col_names, header=None)
+
+# replace NR to 0
+for col in ['{:02d}h'.format(x) for x in range(1,10)]:
+    test.loc[(test.Item=='RAINFALL')&(test[col]=='NR'),col] = 0
+
+# ['ID','Item','Hour','Value'] form
+test =  test.pivot_table( index=['ID','Item'], aggfunc='sum')
+test = test.stack()
+test = test.reset_index()
+test.columns = ['ID','Item','Hour','Value']
+
+
+# combine 'Hour' and 'Item' to 'Col'
+test['Col'] = test.Hour + "__" + test.Item
+test = test[['ID','Col','Value']]
+
+# pivot 'Col' to columns
+test = test.pivot_table(values='Value',index='ID',columns='Col', aggfunc='sum').reset_index()
+test.name = ''
+
+# re-order
+test['ID_Num'] = test.ID.str.replace('id_','').astype('int')
+test = test.sort_values(by='ID_Num')
+test = test.reset_index(drop=True)
+
+# predict
+X_test = np.array(test[colname_X],dtype='float64')
+test['Predict'] = regr.predict(X_test).round(2)
+
+# output
+test[['ID','Predict']].to_csv('test__out.csv',header=None,index=None)
